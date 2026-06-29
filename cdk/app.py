@@ -17,6 +17,7 @@ cert_stack = CertificateStack(
     app,
     "NewsScreenshotsCertificateStack",
     domain_name=domain_name,
+    cross_region_references=True,
     env=cdk.Environment(account=account, region="us-east-1"),
 )
 
@@ -25,8 +26,9 @@ main_stack = NewsScreenshotsStack(
     "NewsScreenshotsStack",
     domain_name=domain_name,
     snapshots_path=os.environ.get("SNAPSHOTS_PATH", "snapshots"),
-    certificate_arn=cert_stack.certificate_arn,
+    certificate=cert_stack.certificate,
     github_repository=github_repo,
+    cross_region_references=True,
     env=cdk.Environment(account=account, region=region),
 )
 main_stack.add_dependency(cert_stack)

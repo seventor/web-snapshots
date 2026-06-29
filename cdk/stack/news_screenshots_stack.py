@@ -31,7 +31,7 @@ class NewsScreenshotsStack(Stack):
         *,
         domain_name: str,
         snapshots_path: str,
-        certificate_arn: str,
+        certificate: acm.ICertificate,
         github_repository: str = "",
         **kwargs,
     ) -> None:
@@ -122,11 +122,7 @@ class NewsScreenshotsStack(Stack):
                 cache_policy=cloudfront.CachePolicy.CACHING_OPTIMIZED,
             ),
             domain_names=[domain_name],
-            certificate=acm.Certificate.from_certificate_arn(
-                self,
-                "ImportedCertificate",
-                certificate_arn,
-            ),
+            certificate=certificate,
             minimum_protocol_version=cloudfront.SecurityPolicyProtocol.TLS_V1_2_2021,
             comment=f"Public snapshots for {domain_name}",
         )

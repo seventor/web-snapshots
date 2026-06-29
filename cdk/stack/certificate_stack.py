@@ -23,13 +23,13 @@ class CertificateStack(Stack):
             domain_name=domain_name,
         )
 
-        certificate = acm.Certificate(
+        self.certificate = acm.Certificate(
             self,
             "Certificate",
             domain_name=domain_name,
             validation=acm.CertificateValidation.from_dns(hosted_zone),
         )
 
-        self.certificate_arn = certificate.certificate_arn
+        self.certificate_arn = self.certificate.certificate_arn
 
-        CfnOutput(self, "CertificateArn", value=certificate.certificate_arn)
+        CfnOutput(self, "CertificateArn", value=self.certificate.certificate_arn)
