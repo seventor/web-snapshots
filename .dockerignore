@@ -1,0 +1,10 @@
+cdk/
+node_modules/
+.git/
+.venv/
+output/
+*.md
+.env
+.env.*
+playwright-report/
+test-results/

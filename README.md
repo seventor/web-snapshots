@@ -2,7 +2,7 @@
 
 Captures scheduled screenshots of news front pages and publishes them as JPEG files to S3. Screenshots are served publicly at [https://snapshots.grense.land](https://snapshots.grense.land).
 
-The app runs every 5 minutes in AWS Lambda (Node.js + Playwright in Docker), triggered by EventBridge. Infrastructure is defined with AWS CDK (Python).
+The app runs every 5 minutes in AWS Lambda (Node.js + Playwright in Docker), triggered by EventBridge. Infrastructure is defined with AWS CDK (TypeScript).
 
 ## Architecture
 
@@ -19,7 +19,6 @@ flowchart LR
 - Node.js 20+
 - Docker
 - AWS CLI configured with access to your account
-- Python 3.12+ and Node.js (for AWS CDK CLI)
 - A Route53 hosted zone for `grense.land` in your AWS account
 
 ## Configuration
@@ -151,7 +150,7 @@ The apex domain `grense.land` is not modified — only the `snapshots` subdomain
 
 ```bash
 cd cdk
-pip install -r requirements.txt
+npm ci
 npm install -g aws-cdk
 
 export CDK_DEFAULT_ACCOUNT=123456789012
@@ -197,7 +196,9 @@ On push to `main` or `master`, the workflow builds the Docker image, pushes to E
 │   └── config.js            # Config loader
 ├── Dockerfile               # Lambda container image
 ├── run-local.js             # Local test runner
-├── cdk/                     # AWS CDK infrastructure
+├── cdk/                     # AWS CDK infrastructure (TypeScript)
+│   ├── bin/app.ts
+│   └── lib/
 └── .github/workflows/       # CI/CD
 ```
 

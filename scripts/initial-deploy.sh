@@ -12,7 +12,7 @@ cd "$ROOT_DIR"
 
 echo "Bootstrapping CDK in ${CDK_DEFAULT_REGION} and us-east-1..."
 cd cdk
-pip install -r requirements.txt
+npm ci
 npm install -g aws-cdk 2>/dev/null || true
 
 cdk bootstrap "aws://${CDK_DEFAULT_ACCOUNT}/${CDK_DEFAULT_REGION}"

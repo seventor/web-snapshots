@@ -1,7 +1,9 @@
 # Node
 node_modules/
+cdk/node_modules/
+cdk/dist/
 
-# Python (CDK)
+# Python (legacy)
 __pycache__/
 *.py[cod]
 .venv/
