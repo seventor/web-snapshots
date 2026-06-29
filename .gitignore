@@ -1,4 +1,7 @@
-# Python
+# Node
+node_modules/
+
+# Python (CDK)
 __pycache__/
 *.py[cod]
 .venv/

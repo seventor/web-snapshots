@@ -2,13 +2,13 @@
 
 Captures scheduled screenshots of news front pages and publishes them as JPEG files to S3. Screenshots are served publicly at [https://snapshots.grense.land](https://snapshots.grense.land).
 
-The app runs every 5 minutes in AWS Lambda (Docker + Playwright), triggered by EventBridge. Infrastructure is defined with AWS CDK.
+The app runs every 5 minutes in AWS Lambda (Node.js + Playwright in Docker), triggered by EventBridge. Infrastructure is defined with AWS CDK (Python).
 
 ## Architecture
 
 ```mermaid
 flowchart LR
-  EB[EventBridge\nevery 5 min] --> L[Lambda\nDocker + Playwright]
+  EB[EventBridge\nevery 5 min] --> L[Lambda\nNode + Playwright]
   L --> S3[(S3 bucket)]
   S3 --> CF[CloudFront]
   CF --> DNS[snapshots.grense.land]
@@ -16,36 +16,40 @@ flowchart LR
 
 ## Prerequisites
 
-- Python 3.12+
+- Node.js 20+
 - Docker
 - AWS CLI configured with access to your account
-- Node.js (for AWS CDK CLI)
+- Python 3.12+ and Node.js (for AWS CDK CLI)
 - A Route53 hosted zone for `grense.land` in your AWS account
 
 ## Configuration
 
-Edit `config.yaml` to define which URLs to capture:
+Edit `config.json` to define which URLs to capture:
 
-```yaml
-urls:
-  - url: https://www.vg.no
-    name: vg-front
-    viewport:
-      width: 1920
-      height: 1080
-    wait_ms: 3000
-    full_page: false
-
-screenshot:
-  format: jpeg
-  quality: 85
-
-storage:
-  s3_prefix: ""
-  public_base_url: https://snapshots.grense.land
-
-schedule:
-  rate_minutes: 5
+```json
+{
+  "urls": [
+    {
+      "url": "https://www.vg.no",
+      "name": "vg-front",
+      "viewport": { "width": 1920, "height": 1080 },
+      "waitMs": 3000,
+      "fullPage": false
+    }
+  ],
+  "screenshot": {
+    "format": "jpeg",
+    "quality": 85
+  },
+  "storage": {
+    "s3Bucket": "",
+    "s3Prefix": "",
+    "publicBaseUrl": "https://snapshots.grense.land"
+  },
+  "schedule": {
+    "rateMinutes": 5
+  }
+}
 ```
 
 | Setting | Description |
@@ -53,31 +57,28 @@ schedule:
 | `urls[].url` | Page to open and screenshot |
 | `urls[].name` | Output filename (`{name}.jpg`) |
 | `urls[].viewport` | Browser viewport size |
-| `urls[].wait_ms` | Extra wait after page load (ms) |
-| `urls[].full_page` | Capture full scrollable page |
+| `urls[].waitMs` | Extra wait after page load (ms) |
+| `urls[].fullPage` | Capture full scrollable page |
 | `screenshot.quality` | JPEG quality (1–100) |
-| `storage.s3_prefix` | Optional S3 key prefix |
-| `storage.public_base_url` | Public URL base for served images |
-| `schedule.rate_minutes` | Run interval in AWS (default: 5) |
+| `storage.s3Prefix` | Optional S3 key prefix |
+| `storage.publicBaseUrl` | Public URL base for served images |
+| `schedule.rateMinutes` | Run interval in AWS (default: 5) |
 
-Copy `config.yaml.example` as a starting point.
+Copy `config.json.example` as a starting point.
 
 ## Run locally
 
 Local runs save screenshots to `./output/` instead of uploading to S3.
 
 ```bash
-# Create virtual environment
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-playwright install chromium
+npm install
+npx playwright install chromium
 
 # Optional: copy environment file
 cp .env.example .env
 
 # Run once
-python run_local.py
+npm run capture
 ```
 
 Screenshots appear under `output/`. To test real S3 uploads locally, unset `LOCAL_OUTPUT_DIR` and set `S3_BUCKET` plus AWS credentials.
@@ -88,10 +89,8 @@ Screenshots appear under `output/`. To test real S3 uploads locally, unset `LOCA
 docker build -t news-screenshots .
 docker run --rm \
   -e LOCAL_OUTPUT_DIR=/tmp/output \
-  -e S3_BUCKET= \
-  -v "$(pwd)/output:/tmp/output" \
   news-screenshots \
-  python -c "from handler import run_task; print(run_task())"
+  node -e "import('./src/handler.js').then(m => m.runTask()).then(console.log)"
 ```
 
 ## Environment variables
@@ -102,7 +101,7 @@ docker run --rm \
 | `S3_BUCKET` | AWS | Target bucket (set automatically in Lambda) |
 | `S3_PREFIX` | No | S3 key prefix (default: empty) |
 | `PUBLIC_BASE_URL` | No | Public URL base for logs |
-| `CONFIG_PATH` | No | Path to config file |
+| `CONFIG_PATH` | No | Path to config file (default: `config.json`) |
 | `CDK_DEFAULT_ACCOUNT` | CDK deploy | AWS account ID |
 | `CDK_DEFAULT_REGION` | CDK deploy | AWS region (default: `eu-north-1`) |
 | `HOSTED_ZONE_NAME` | CDK deploy | Route53 zone (default: `grense.land`) |
@@ -189,14 +188,15 @@ On push to `main` or `master`, the workflow builds the Docker image, pushes to E
 ## Project structure
 
 ```
-├── config.yaml              # URL list and settings
+├── config.json              # URL list and settings
+├── package.json
 ├── src/
-│   ├── handler.py           # Lambda entry point
-│   ├── screenshot.py        # Playwright capture logic
-│   ├── storage.py           # S3 / local file persistence
-│   └── config.py            # Config loader
+│   ├── handler.js           # Lambda entry point
+│   ├── screenshot.js        # Playwright capture logic
+│   ├── storage.js           # S3 / local file persistence
+│   └── config.js            # Config loader
 ├── Dockerfile               # Lambda container image
-├── run_local.py             # Local test runner
+├── run-local.js             # Local test runner
 ├── cdk/                     # AWS CDK infrastructure
 └── .github/workflows/       # CI/CD
 ```

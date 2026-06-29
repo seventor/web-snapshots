@@ -1,0 +1,17 @@
+{
+  "name": "news-screenshots",
+  "version": "1.0.0",
+  "description": "Scheduled webpage screenshots to S3",
+  "type": "module",
+  "scripts": {
+    "capture": "node run-local.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.750.0",
+    "dotenv": "^16.4.7",
+    "playwright": "^1.49.1"
+  }
+}

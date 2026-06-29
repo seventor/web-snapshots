@@ -1,0 +1,36 @@
+{
+  "urls": [
+    {
+      "url": "https://www.vg.no",
+      "name": "vg-front",
+      "viewport": {
+        "width": 1920,
+        "height": 1080
+      },
+      "waitMs": 3000,
+      "fullPage": false
+    },
+    {
+      "url": "https://www.aftenposten.no",
+      "name": "aftenposten-front",
+      "viewport": {
+        "width": 1920,
+        "height": 1080
+      },
+      "waitMs": 3000,
+      "fullPage": false
+    }
+  ],
+  "screenshot": {
+    "format": "jpeg",
+    "quality": 85
+  },
+  "storage": {
+    "s3Bucket": "",
+    "s3Prefix": "",
+    "publicBaseUrl": "https://snapshots.grense.land"
+  },
+  "schedule": {
+    "rateMinutes": 5
+  }
+}

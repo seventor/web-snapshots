@@ -1,17 +1,17 @@
-FROM public.ecr.aws/lambda/python:3.12
+FROM public.ecr.aws/lambda/nodejs:20
 
 ENV PLAYWRIGHT_BROWSERS_PATH=/opt/playwright
 
-COPY requirements.txt ${LAMBDA_TASK_ROOT}/
-RUN pip install --no-cache-dir -r ${LAMBDA_TASK_ROOT}/requirements.txt \
+COPY package.json package-lock.json ${LAMBDA_TASK_ROOT}/
+RUN npm ci --omit=dev \
     && mkdir -p ${PLAYWRIGHT_BROWSERS_PATH} \
-    && PLAYWRIGHT_BROWSERS_PATH=${PLAYWRIGHT_BROWSERS_PATH} playwright install chromium \
-    && PLAYWRIGHT_BROWSERS_PATH=${PLAYWRIGHT_BROWSERS_PATH} playwright install-deps chromium
+    && PLAYWRIGHT_BROWSERS_PATH=${PLAYWRIGHT_BROWSERS_PATH} npx playwright install chromium \
+    && PLAYWRIGHT_BROWSERS_PATH=${PLAYWRIGHT_BROWSERS_PATH} npx playwright install-deps chromium
 
-COPY src/ ${LAMBDA_TASK_ROOT}/
-COPY config.yaml ${LAMBDA_TASK_ROOT}/config.yaml
+COPY src/ ${LAMBDA_TASK_ROOT}/src/
+COPY config.json ${LAMBDA_TASK_ROOT}/config.json
 
-ENV CONFIG_PATH=/var/task/config.yaml
+ENV CONFIG_PATH=/var/task/config.json
 ENV PLAYWRIGHT_BROWSERS_PATH=/opt/playwright
 
-CMD ["handler.lambda_handler"]
+CMD ["src/handler.handler"]

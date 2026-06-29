@@ -82,7 +82,7 @@ class NewsScreenshotsStack(Stack):
                 "S3_BUCKET": bucket.bucket_name,
                 "S3_PREFIX": "",
                 "PUBLIC_BASE_URL": public_base_url,
-                "CONFIG_PATH": "/var/task/config.yaml",
+                "CONFIG_PATH": "/var/task/config.json",
             },
         )
         bucket.grant_read_write(screenshot_function)
