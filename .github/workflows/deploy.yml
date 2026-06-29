@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - master
   workflow_dispatch:
 
 permissions:
@@ -12,8 +13,8 @@ permissions:
 
 env:
   AWS_REGION: eu-north-1
-  DOMAIN_NAME: grense.land
-  SNAPSHOTS_PATH: snapshots
+  HOSTED_ZONE_NAME: grense.land
+  DOMAIN_NAME: snapshots.grense.land
 
 jobs:
   deploy:
@@ -64,6 +65,8 @@ jobs:
         env:
           CDK_DEFAULT_ACCOUNT: ${{ secrets.AWS_ACCOUNT_ID }}
           CDK_DEFAULT_REGION: ${{ env.AWS_REGION }}
+          HOSTED_ZONE_NAME: ${{ env.HOSTED_ZONE_NAME }}
+          DOMAIN_NAME: ${{ env.DOMAIN_NAME }}
           IMAGE_TAG: ${{ github.sha }}
           GITHUB_REPOSITORY: ${{ github.repository }}
         run: cdk deploy --all --require-approval never

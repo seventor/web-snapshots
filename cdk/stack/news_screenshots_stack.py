@@ -30,15 +30,14 @@ class NewsScreenshotsStack(Stack):
         construct_id: str,
         *,
         domain_name: str,
-        snapshots_path: str,
+        hosted_zone_name: str,
         certificate: acm.ICertificate,
         github_repository: str = "",
         **kwargs,
     ) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
-        snapshots_prefix = snapshots_path.strip("/")
-        public_base_url = f"https://{domain_name}/{snapshots_prefix}"
+        public_base_url = f"https://{domain_name}"
 
         bucket = s3.Bucket(
             self,
@@ -81,7 +80,7 @@ class NewsScreenshotsStack(Stack):
             architecture=lambda_.Architecture.X86_64,
             environment={
                 "S3_BUCKET": bucket.bucket_name,
-                "S3_PREFIX": f"{snapshots_prefix}/",
+                "S3_PREFIX": "",
                 "PUBLIC_BASE_URL": public_base_url,
                 "CONFIG_PATH": "/var/task/config.yaml",
             },
@@ -99,8 +98,10 @@ class NewsScreenshotsStack(Stack):
         hosted_zone = route53.HostedZone.from_lookup(
             self,
             "HostedZone",
-            domain_name=domain_name,
+            domain_name=hosted_zone_name,
         )
+
+        subdomain = domain_name.removesuffix(f".{hosted_zone_name}")
 
         origin_access_control = cloudfront.S3OriginAccessControl(
             self,
@@ -149,7 +150,7 @@ class NewsScreenshotsStack(Stack):
             self,
             "DomainAliasRecord",
             zone=hosted_zone,
-            record_name=domain_name,
+            record_name=subdomain,
             target=route53.RecordTarget.from_alias(
                 route53_targets.CloudFrontTarget(distribution)
             ),

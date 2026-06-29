@@ -13,6 +13,7 @@ class CertificateStack(Stack):
         construct_id: str,
         *,
         domain_name: str,
+        hosted_zone_name: str,
         **kwargs,
     ) -> None:
         super().__init__(scope, construct_id, **kwargs)
@@ -20,7 +21,7 @@ class CertificateStack(Stack):
         hosted_zone = route53.HostedZone.from_lookup(
             self,
             "HostedZone",
-            domain_name=domain_name,
+            domain_name=hosted_zone_name,
         )
 
         self.certificate = acm.Certificate(

@@ -64,7 +64,7 @@ def load_config(path: Path | None = None) -> AppConfig:
     public_base_url = (
         os.environ.get("PUBLIC_BASE_URL")
         or storage.get("public_base_url", "")
-        or "https://grense.land/snapshots"
+        or "https://snapshots.grense.land"
     )
 
     return AppConfig(

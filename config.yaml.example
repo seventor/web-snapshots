@@ -13,8 +13,8 @@ screenshot:
 
 storage:
   s3_bucket: ""
-  s3_prefix: snapshots/
-  public_base_url: https://grense.land/snapshots
+  s3_prefix: ""
+  public_base_url: https://snapshots.grense.land
 
 schedule:
   rate_minutes: 5

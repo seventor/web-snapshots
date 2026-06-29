@@ -1,6 +1,6 @@
 # News Screenshots
 
-Captures scheduled screenshots of news front pages and publishes them as JPEG files to S3. Screenshots are served publicly at [https://grense.land/snapshots](https://grense.land/snapshots).
+Captures scheduled screenshots of news front pages and publishes them as JPEG files to S3. Screenshots are served publicly at [https://snapshots.grense.land](https://snapshots.grense.land).
 
 The app runs every 5 minutes in AWS Lambda (Docker + Playwright), triggered by EventBridge. Infrastructure is defined with AWS CDK.
 
@@ -9,9 +9,9 @@ The app runs every 5 minutes in AWS Lambda (Docker + Playwright), triggered by E
 ```mermaid
 flowchart LR
   EB[EventBridge\nevery 5 min] --> L[Lambda\nDocker + Playwright]
-  L --> S3[(S3 bucket\nsnapshots/)]
+  L --> S3[(S3 bucket)]
   S3 --> CF[CloudFront]
-  CF --> DNS[grense.land]
+  CF --> DNS[snapshots.grense.land]
 ```
 
 ## Prerequisites
@@ -41,8 +41,8 @@ screenshot:
   quality: 85
 
 storage:
-  s3_prefix: snapshots/
-  public_base_url: https://grense.land/snapshots
+  s3_prefix: ""
+  public_base_url: https://snapshots.grense.land
 
 schedule:
   rate_minutes: 5
@@ -56,14 +56,15 @@ schedule:
 | `urls[].wait_ms` | Extra wait after page load (ms) |
 | `urls[].full_page` | Capture full scrollable page |
 | `screenshot.quality` | JPEG quality (1–100) |
-| `storage.s3_prefix` | S3 key prefix (matches `/snapshots` URL path) |
+| `storage.s3_prefix` | Optional S3 key prefix |
+| `storage.public_base_url` | Public URL base for served images |
 | `schedule.rate_minutes` | Run interval in AWS (default: 5) |
 
 Copy `config.yaml.example` as a starting point.
 
 ## Run locally
 
-Local runs save screenshots to `./output/snapshots/` instead of uploading to S3.
+Local runs save screenshots to `./output/` instead of uploading to S3.
 
 ```bash
 # Create virtual environment
@@ -79,7 +80,7 @@ cp .env.example .env
 python run_local.py
 ```
 
-Screenshots appear under `output/snapshots/`. To test real S3 uploads locally, unset `LOCAL_OUTPUT_DIR` and set `S3_BUCKET` plus AWS credentials.
+Screenshots appear under `output/`. To test real S3 uploads locally, unset `LOCAL_OUTPUT_DIR` and set `S3_BUCKET` plus AWS credentials.
 
 ### Run in Docker locally
 
@@ -99,14 +100,15 @@ docker run --rm \
 |----------|----------|-------------|
 | `LOCAL_OUTPUT_DIR` | Local only | Save files locally instead of S3 |
 | `S3_BUCKET` | AWS | Target bucket (set automatically in Lambda) |
-| `S3_PREFIX` | No | S3 key prefix (default: `snapshots/`) |
+| `S3_PREFIX` | No | S3 key prefix (default: empty) |
 | `PUBLIC_BASE_URL` | No | Public URL base for logs |
 | `CONFIG_PATH` | No | Path to config file |
 | `CDK_DEFAULT_ACCOUNT` | CDK deploy | AWS account ID |
 | `CDK_DEFAULT_REGION` | CDK deploy | AWS region (default: `eu-north-1`) |
-| `DOMAIN_NAME` | CDK deploy | Domain name (default: `grense.land`) |
+| `HOSTED_ZONE_NAME` | CDK deploy | Route53 zone (default: `grense.land`) |
+| `DOMAIN_NAME` | CDK deploy | Subdomain for snapshots (default: `snapshots.grense.land`) |
 | `IMAGE_TAG` | CI deploy | Docker image tag for Lambda |
-| `GITHUB_REPOSITORY` | CDK deploy | e.g. `your-org/news-screenshots` (creates OIDC deploy role) |
+| `GITHUB_REPOSITORY` | CDK deploy | e.g. `seventor/web-snapshots` (creates OIDC deploy role) |
 
 Example `.env` file:
 
@@ -114,7 +116,8 @@ Example `.env` file:
 LOCAL_OUTPUT_DIR=./output
 CDK_DEFAULT_ACCOUNT=123456789012
 CDK_DEFAULT_REGION=eu-north-1
-DOMAIN_NAME=grense.land
+HOSTED_ZONE_NAME=grense.land
+DOMAIN_NAME=snapshots.grense.land
 ```
 
 ## Deploy to AWS
@@ -128,7 +131,7 @@ DOMAIN_NAME=grense.land
 ```bash
 export CDK_DEFAULT_ACCOUNT=123456789012
 export CDK_DEFAULT_REGION=eu-north-1
-export GITHUB_REPOSITORY=your-org/news-screenshots  # optional, for GitHub Actions OIDC
+export GITHUB_REPOSITORY=seventor/web-snapshots
 chmod +x scripts/initial-deploy.sh
 ./scripts/initial-deploy.sh
 ```
@@ -140,10 +143,10 @@ This creates:
 - Lambda function (Docker image built from `Dockerfile`)
 - EventBridge schedule (every 5 minutes)
 - ACM certificate (us-east-1) + CloudFront distribution
-- Route53 A record for `grense.land` → CloudFront
+- Route53 A record for `snapshots.grense.land` → CloudFront
 - GitHub OIDC deploy role (if `GITHUB_REPOSITORY` is set)
 
-**Note:** The CDK stack creates an A record for the apex domain `grense.land`. If you already use this domain for another website, adjust the CDK stack before deploying.
+The apex domain `grense.land` is not modified — only the `snapshots` subdomain is added.
 
 ### Manual CDK deploy
 
@@ -154,6 +157,8 @@ npm install -g aws-cdk
 
 export CDK_DEFAULT_ACCOUNT=123456789012
 export CDK_DEFAULT_REGION=eu-north-1
+export HOSTED_ZONE_NAME=grense.land
+export DOMAIN_NAME=snapshots.grense.land
 
 cdk bootstrap aws://$CDK_DEFAULT_ACCOUNT/$CDK_DEFAULT_REGION
 cdk bootstrap aws://$CDK_DEFAULT_ACCOUNT/us-east-1
@@ -171,15 +176,15 @@ aws lambda invoke \
 
 ## GitHub Actions
 
-On push to `main`, the workflow builds the Docker image, pushes to ECR, and deploys with CDK.
+On push to `main` or `master`, the workflow builds the Docker image, pushes to ECR, and deploys with CDK.
 
 ### Setup
 
-1. Create a GitHub repository and push this code.
+1. Push this code to [seventor/web-snapshots](https://github.com/seventor/web-snapshots).
 2. After the first CDK deploy with `GITHUB_REPOSITORY` set, add these **repository secrets**:
    - `AWS_ACCOUNT_ID` — your AWS account ID
    - `AWS_DEPLOY_ROLE_ARN` — from stack output `GitHubDeployRoleArn`
-3. Push to `main` to trigger deployment.
+3. Push to `main` or `master` to trigger deployment.
 
 ## Project structure
 

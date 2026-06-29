@@ -6,7 +6,8 @@ cd "$ROOT_DIR"
 
 : "${CDK_DEFAULT_ACCOUNT:?Set CDK_DEFAULT_ACCOUNT to your AWS account ID}"
 : "${CDK_DEFAULT_REGION:=eu-north-1}"
-: "${DOMAIN_NAME:=grense.land}"
+: "${HOSTED_ZONE_NAME:=grense.land}"
+: "${DOMAIN_NAME:=snapshots.grense.land}"
 : "${GITHUB_REPOSITORY:=}"
 
 echo "Bootstrapping CDK in ${CDK_DEFAULT_REGION} and us-east-1..."
@@ -17,6 +18,7 @@ npm install -g aws-cdk 2>/dev/null || true
 cdk bootstrap "aws://${CDK_DEFAULT_ACCOUNT}/${CDK_DEFAULT_REGION}"
 cdk bootstrap "aws://${CDK_DEFAULT_ACCOUNT}/us-east-1"
 
+export HOSTED_ZONE_NAME
 export DOMAIN_NAME
 export GITHUB_REPOSITORY
 
