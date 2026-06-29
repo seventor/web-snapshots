@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+
+# Local output
+output/
+
+# CDK
+cdk.out/
+cdk/cdk.out/
+*.egg-info/
+
+# IDE
+.idea/
+.vscode/
+.DS_Store
+
+# Playwright
+playwright-report/
+test-results/

@@ -1,0 +1,32 @@
+# Screenshot targets. Each entry produces one JPG file.
+urls:
+  - url: https://www.vg.no
+    name: vg-front
+    viewport:
+      width: 1920
+      height: 1080
+    wait_ms: 3000
+    full_page: false
+
+  - url: https://www.aftenposten.no
+    name: aftenposten-front
+    viewport:
+      width: 1920
+      height: 1080
+    wait_ms: 3000
+    full_page: false
+
+screenshot:
+  format: jpeg
+  quality: 85
+
+storage:
+  # In AWS this is set automatically by the Lambda environment.
+  # For local runs, set LOCAL_OUTPUT_DIR to save files on disk instead of S3.
+  s3_bucket: ""
+  s3_prefix: snapshots/
+  # Optional: override the public URL base shown in logs (defaults to CDN domain in AWS).
+  public_base_url: https://grense.land/snapshots
+
+schedule:
+  rate_minutes: 5
